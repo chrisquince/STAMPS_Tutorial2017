@@ -2,38 +2,19 @@
 
 ## Getting started
 
-This tutorial provides a complete walkthrough for CONCOCT2 and DESMAN on the STAMPS servers using 
-8 threads.
-First download the reference genomes and simulation coverages used for validation of the results:
-
-```
-wget https://stamps2017tutorial.s3.climb.ac.uk/Genomes.tar.gz
-tar -xvzf Genomes.tar.gz
-wget https://stamps2017tutorial.s3.climb.ac.uk/coverage.tsv
-wget https://stamps2017tutorial.s3.climb.ac.uk/select.tsv
-```
-
-Now get the actual metagenome reads there are 32 samples:
-```
-mkdir Reads
-cd Reads
-```
-
-Now enter this for loop as one command:
-```
-for n in `seq 0 31 `
-do
-    wget https://stamps2017tutorial.s3.climb.ac.uk/Reads.${n}.r1.fq.gz
-    wget https://stamps2017tutorial.s3.climb.ac.uk/Reads.${n}.r2.fq.gz
-done
-cd..
-```
+This tutorial provides a complete walkthrough for CONCOCT2 and DESMAN on the STAMPS servers using 8 threads. We will construct a now working directory in our home directories and copy across the tutorial data and some config files from the simulation:
 
 ```
 cd ~
 mkdir CDTutorial
+cp /class/stamps-shared/CDTutorial/* .
 ```
 
+Extract and untar the Reads and Genomes directories:
+```
+tar -xvzf Reads.tar.gz
+tar -xvzf Genomes.tar.gz
+```
 
 ## Running CONCOCT2 and DESMAN on the complex mock
 
@@ -190,6 +171,10 @@ Format is:
 * gene_id,cog_id,startpos,endpos,cogstart,cogend,strand
 * gene_id,contig_id,startpos,endpos,strand
 
+We will also need contig lengths later on:
+```
+python $DESMAN/scripts/Lengths.py -i final_contigs_gt1000_c10K.fa > final_contigs_gt1000_c10K.len
+```
 
 We are going to determine the number of complete and pure genomes using single-core gene frequencies. First we 
 calculate scg frequencies on the CONCOCT clusters:
@@ -240,7 +225,7 @@ mkdir SplitBam
 while read -r cluster 
 do
     grep ">" Split/${cluster}/${cluster}.fa | sed 's/>//g' > Split/${cluster}/${cluster}_contigs.txt
-    ./STAMPS_Tutorial2017/scripts/scripts/AddLengths.pl Annotate/final_contigs_gt1000_c10K.len < Split/${cluster}/${cluster}_contigs.txt > Split/${cluster}/${cluster}_contigs.tsv
+    ./STAMPS_Tutorial2017/scripts/AddLengths.pl Annotate/final_contigs_gt1000_c10K.len < Split/${cluster}/${cluster}_contigs.txt > Split/${cluster}/${cluster}_contigs.tsv
     mkdir SplitBam/${cluster}
 
     for bamfile in Map/*.mapped.sorted.bam
@@ -254,5 +239,39 @@ do
     wait    
 done < Concoct/Cluster75.txt 
 ```
+
+and use a third party program bam-readcount to get base frequencies at each position on each contig:
+
+```
+while read line
+do
+    mag=$line
+
+    echo $mag
+
+    cd SplitBam
+    cd ${mag}
+
+    cp ../../Split/${mag}/${mag}_contigs.tsv ${mag}_contigs.tsv
+    samtools faidx ../../Split/${mag}/${mag}.fa
+
+    echo "${mag}_contigs.tsv"
+    mkdir ReadcountFilter
+    for bamfile in *_Filter.bam
+    do
+        stub=${bamfile%_Filter.bam}
+            
+        echo $stub
+
+        (samtools index $bamfile; bam-readcount -w 1 -q 20 -l "${mag}_contigs.tsv" -f ../../Split/${mag}/${mag}.fa $bamfile 2> ReadcountFilter/${stub}.err > ReadcountFilter/${stub}.cnt)&
+    
+     done
+     cd ..
+     cd ..
+     wait
+    
+done < Concoct/Cluster75.txt
+
+``` 
 
 
