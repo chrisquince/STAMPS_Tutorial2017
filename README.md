@@ -25,11 +25,13 @@ which has format "Sample\tSpecies\Strain\Coverage\Relative frequency". We will n
 
 ## Running CONCOCT2 and DESMAN on the complex mock
 
-We need to load up the concoct module:
+We need to load up the concoct and desman modules:
 
 ```
 module load concoct
-./class/stamps-software/concoct_speedup_mp/bin/activate
+source /class/stamps-software/concoct_speedup_mp/bin/activate
+module load desman
+source /class/stamps-software/desman/bin/activate
 ```
 
 We now describe how to perform a complete analysis binning and resolving strains on 
@@ -39,7 +41,8 @@ system set-up):
 
 ```
 export CONCOCT=/automounts/classfs/classfs/stamps-software/concoct_speedup_mp/
-export DESMAN=/mnt/gpfs/chris/repos/DESMAN/
+export DESMAN=/automounts/classfs/classfs/stamps-software/desman/
+export CDSCRIPTS=/class/stamps-shared/CDTutorial/scripts
 ```
 
 We will also create a new variable pointing to our current working dir for all this analysis:
@@ -285,6 +288,33 @@ do
     
 done < Concoct/Cluster75.txt
 
+``` 
+
+Then we want to select core cogs from each cluster
+
+```
+while read -r cluster 
+do
+    echo $cluster
+    $DESMAN/scripts/SelectContigsPos.pl STAMPS_Tutorial2017/data/cogs.txt < Split/${cluster}/${cluster}.cog > Split/${cluster}/${cluster}_core.cogs
+done < Concoct/Cluster75.txt
+```
+
+Then we can get the base counts on these core cogs:
+
+```
+#!/bin/bash
+
+mkdir Variants
+while read -r cluster 
+do
+    echo $cluster
+    cd ./SplitBam/${cluster}/ReadcountFilter
+    gzip *cnt
+    cd ../../..
+    python $DESMAN/scripts/ExtractCountFreqGenes.py Split/${cluster}/${cluster}_core.cogs ./SplitBam/${cluster}/ReadcountFilter --output_file Variants/${cluster}_scg.freq > Variants/${cluster}log.txt&
+
+done < Concoct/Cluster75.txt 
 ``` 
 
 
