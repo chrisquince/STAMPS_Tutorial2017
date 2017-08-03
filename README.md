@@ -5,10 +5,10 @@ This tutorial provides a complete walkthrough for CONCOCT2 and DESMAN on the STA
 First download the reference genomes and simulation coverages used for validation of the results:
 
 ```
-wget https://stamps2017.s3.climb.ac.uk/Genomes.tar.gz
+wget https://stamps2017tutorial.s3.climb.ac.uk/Genomes.tar.gz
 tar -xvzf Genomes.tar.gz
-wget https://stamps2017.s3.climb.ac.uk/coverage.tsv
-wget https://stamps2017.s3.climb.ac.uk/Genomes.tar.gz
+wget https://stamps2017tutorial.s3.climb.ac.uk/coverage.tsv
+wget https://stamps2017tutorial.s3.climb.ac.uk/Genomes.tar.gz
 ```
 
 Now get the actual metagenome reads there are 32 samples:
@@ -21,8 +21,8 @@ Now enter this for loop as one command:
 ```
 for n in `seq 1 32 `
 do
-    wget https://stamps2017.s3.climb.ac.uk/Reads.${n}.r1.fq.gz
-    wget https://stamps2017.s3.climb.ac.uk/Reads.${n}.r2.fq.gz
+    wget https://stamps2017tutorial.s3.climb.ac.uk/Reads.${n}.r1.fq.gz
+    wget https://stamps2017tutorial.s3.climb.ac.uk/Reads.${n}.r2.fq.gz
 done
 cd..
 ```
@@ -171,5 +171,55 @@ $CONCOCT/scripts/COGPlot.R -s clustering_gt1000_scg.tsv -o clustering_gt1000_scg
 
 We should see 8 nearly complete bins and some fragmentary ones:
 
-
 ![SCG Results](Figures/clustering_gt1000_scg.pdf)
+
+We want to store a list of 75% complete and pure for DESMAN analysis:
+```
+python $SCRIPTS/CompleteClusters.py clustering_gt1000_scg.tsv > Cluster75.txt
+```
+
+### How to calculate cluster coverages
+
+```
+python $EXAMPLE/scripts/ClusterMeanCov.py Coverage.csv clustering_gt1000.csv ../Assembly/final_contigs_c10K.fa > Cluster_Cov.csv
+```
+
+## Run DESMAN pipeline on each high quality bin
+
+Now we can split up bam files by each cluster in turn:
+```
+cd ..
+mkdir Split
+cd Split
+$DESMAN/scripts/SplitClusters.pl ../Annotate/final_contigs_gt1000_c10K.fa ../Concoct/clustering_gt1000.csv
+$METASIMPATH/scripts/SplitCOGs.pl ../Annotate/final_contigs_gt1000_c10K.cogs ../Concoct/clustering_refine.csv
+$METASIMPATH/scripts/SplitGenes.pl ../Annotate/final_contigs_gt1000_c10K.genes ../Concoct/clustering_refine.csv
+cd ..
+```
+
+```
+
+```
+
+
+mkdir SplitBam
+
+while read -r cluster 
+do
+    grep ">" Split/${cluster}/${cluster}.fa | sed 's/>//g' > Split/${cluster}/${cluster}_contigs.txt
+    ./STAMPS_Tutorial2017/scripts/scripts/AddLengths.pl Annotate/final_contigs_gt1000_c10K.len < Split/${cluster}/${cluster}_contigs.txt > Split/${cluster}/${cluster}_contigs.tsv
+    mkdir SplitBam/${cluster}
+
+    for bamfile in Map/*.mapped.sorted.bam
+    do
+        stub=${bamfile#Map\/}
+        stub=${stub%.mapped.sorted.bam}
+        
+        samtools view -bhL Split/${cluster}/${cluster}_contigs.tsv $bamfile > SplitBam/${cluster}/${stub}_Filter.bam&
+
+    done 
+    wait    
+done < Concoct/Cluster75.txt 
+```
+
+
