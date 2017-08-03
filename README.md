@@ -7,6 +7,7 @@ This tutorial provides a complete walkthrough for CONCOCT2 and DESMAN on the STA
 ```
 cd ~
 mkdir CDTutorial
+cd CDTutorial
 cp /class/stamps-shared/CDTutorial/* .
 ```
 
@@ -15,6 +16,12 @@ Extract and untar the Reads and Genomes directories:
 tar -xvzf Reads.tar.gz
 tar -xvzf Genomes.tar.gz
 ```
+
+The data consists of 32 samples of 500,000 2X150 bp paired end reads taken from 8 species and 15 genomes. The organisms vary in abundance across samples as in the file:
+```
+head -n 10 genome_coverage.tsv
+```
+which has format "Sample\tSpecies\Strain\Coverage\Relative frequency".
 
 ## Running CONCOCT2 and DESMAN on the complex mock
 
@@ -44,13 +51,19 @@ The first step in the analysis is to assemble the reads.
 
 ### Assembly
 
-We assembled the reads using MEGAHIT 1.1.1 and default parameters:
+I previously assembled the reads using MEGAHIT 1.1.1 and default parameters:
 ```
 module load megahit/1.0.6
 ls Reads/*r1*gz | tr "\n" "," | sed 's/,$//' > r1.csv
 ls Reads/*r2*gz | tr "\n" "," | sed 's/,$//' > r2.csv
-megahit -1 $(<r1.csv) -2 $(<r2.csv) -t 8 -o Assembly > megahit1.out
+megahit -1 $(<r1.csv) -2 $(<r2.csv) -t 8 -o Assembly 
 ```
+
+This will take approximately 20 minutes. Please ** do not run ** this now. Instead copy across results that I ran earlier:
+```
+cp Assembly.tar.gz /class/stamps-shared/CDTutorial/
+tar -xvzf Assembly.tar.gz
+```  
 
 Evaluate the assembly quality with the script provided:
 ```
