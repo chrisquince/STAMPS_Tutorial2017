@@ -1,5 +1,7 @@
 # STAMPS_Tutorial2017
 
+## Getting started
+
 This tutorial provides a complete walkthrough for CONCOCT2 and DESMAN on the STAMPS servers using 
 8 threads.
 First download the reference genomes and simulation coverages used for validation of the results:
@@ -8,7 +10,7 @@ First download the reference genomes and simulation coverages used for validatio
 wget https://stamps2017tutorial.s3.climb.ac.uk/Genomes.tar.gz
 tar -xvzf Genomes.tar.gz
 wget https://stamps2017tutorial.s3.climb.ac.uk/coverage.tsv
-wget https://stamps2017tutorial.s3.climb.ac.uk/Genomes.tar.gz
+wget https://stamps2017tutorial.s3.climb.ac.uk/select.tsv
 ```
 
 Now get the actual metagenome reads there are 32 samples:
@@ -19,7 +21,7 @@ cd Reads
 
 Now enter this for loop as one command:
 ```
-for n in `seq 1 32 `
+for n in `seq 0 31 `
 do
     wget https://stamps2017tutorial.s3.climb.ac.uk/Reads.${n}.r1.fq.gz
     wget https://stamps2017tutorial.s3.climb.ac.uk/Reads.${n}.r2.fq.gz
@@ -27,7 +29,20 @@ done
 cd..
 ```
 
+```
+cd ~
+mkdir CDTutorial
+```
+
+
 ## Running CONCOCT2 and DESMAN on the complex mock
+
+We need to load up the concoct module:
+
+```
+module load concoct
+./class/stamps-software/concoct_speedup_mp/bin/activate
+```
 
 We now describe how to perform a complete analysis binning and resolving strains on 
 this synthetic community. Some of these steps are time consuming so we provide the option to download the output instead. This assumes that DESMAN and CONCOCT are installed and their paths 
@@ -35,13 +50,13 @@ set to the variables DESMAN and CONCOCT respectively e.g. (changing paths to you
 system set-up):
 
 ```
-export CONCOCT=/mnt/gpfs/chris/repos/CONCOCT/
+export CONCOCT=/automounts/classfs/classfs/stamps-software/concoct_speedup_mp/
 export DESMAN=/mnt/gpfs/chris/repos/DESMAN/
 ```
 
 We will also create a new variable pointing to our current working dir for all this analysis:
 ```
-export METASIMPATHWD=$METASIMPATH/ComplexStrainSim/Strains/Simulation
+export METASIMWD=~/CDTutorial
 ```
 
 The first step in the analysis is to assemble the reads. 
@@ -50,6 +65,7 @@ The first step in the analysis is to assemble the reads.
 
 We assembled the reads using MEGAHIT 1.1.1 and default parameters:
 ```
+module load megahit/1.0.6
 ls Reads/*r1*gz | tr "\n" "," | sed 's/,$//' > r1.csv
 ls Reads/*r2*gz | tr "\n" "," | sed 's/,$//' > r2.csv
 megahit -1 $(<r1.csv) -2 $(<r2.csv) -t 8 -o Assembly > megahit1.out
@@ -156,6 +172,25 @@ Assign COGs change the -c flag which sets number of parallel processes appropria
     $CONCOCT/scripts/RPSBLAST.sh -f final_contigs_gt1000_c10K.faa -p -c 8 -r 1
 ```
 
+We will also write out lists of cogs and genes in each contig. These will be useful later:
+```
+python $DESMAN/scripts/ExtractCogs.py -b final_contigs_gt1000_c10K.out --cdd_cog_file $CONCOCT/scgs/cdd_to_cog.tsv -g final_contigs_gt1000_c10K.gff > final_contigs_gt1000_c10K.cogs
+python $DESMAN/scripts/ExtractGenes.py -g final_contigs_gt1000_c10K.gff > final_contigs_gt1000_c10K.genes
+```
+
+These are just simple comma separated lists, have a look at them:
+
+```
+head final_contigs_gt1000_c10K.cogs 
+head final_contigs_gt1000_c10K.genes
+```
+
+Format is:
+
+* gene_id,cog_id,startpos,endpos,cogstart,cogend,strand
+* gene_id,contig_id,startpos,endpos,strand
+
+
 We are going to determine the number of complete and pure genomes using single-core gene frequencies. First we 
 calculate scg frequencies on the CONCOCT clusters:
 
@@ -184,24 +219,22 @@ python $SCRIPTS/CompleteClusters.py clustering_gt1000_scg.tsv > Cluster75.txt
 python $EXAMPLE/scripts/ClusterMeanCov.py Coverage.csv clustering_gt1000.csv ../Assembly/final_contigs_c10K.fa > Cluster_Cov.csv
 ```
 
-## Run DESMAN pipeline on each high quality bin
+## Run DESMAN pipeline to resolve strains in each high quality bin
 
-Now we can split up bam files by each cluster in turn:
+
+First we separate out the contigs, cogs, and genes into the separate bins:
 ```
 cd ..
 mkdir Split
 cd Split
 $DESMAN/scripts/SplitClusters.pl ../Annotate/final_contigs_gt1000_c10K.fa ../Concoct/clustering_gt1000.csv
-$METASIMPATH/scripts/SplitCOGs.pl ../Annotate/final_contigs_gt1000_c10K.cogs ../Concoct/clustering_refine.csv
-$METASIMPATH/scripts/SplitGenes.pl ../Annotate/final_contigs_gt1000_c10K.genes ../Concoct/clustering_refine.csv
+$METASIMPATH/scripts/SplitCOGs.pl ../Annotate/final_contigs_gt1000_c10K.cogs ../Concoct/clustering_gt1000.csv
+$METASIMPATH/scripts/SplitGenes.pl ../Annotate/final_contigs_gt1000_c10K.genes ../Concoct/clustering_gt1000.csv
 cd ..
 ```
 
+Now we can split up the bam files by each cluster in turn:
 ```
-
-```
-
-
 mkdir SplitBam
 
 while read -r cluster 
