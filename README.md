@@ -79,7 +79,7 @@ sequence #: 13863	total length: 31472365	max length: 1015941	N50: 9774	N90: 706
 ```
 
 The next step in CONCOCT is to cut up contigs and map the reads back onto them. Again 
-__do not run__ this:
+__do not run__ any of the following:
 
 
 ```
@@ -102,12 +102,7 @@ do
     bwa mem -t 8 Assembly/final_contigs_c10K.fa $file ${stub}.r2.fq.gz > Map/$base.sam
 
 done
-```
 
-### Generate contig coverages
-
-And calculate coverages:
-```
 python $DESMAN/scripts/Lengths.py -i Assembly/final_contigs_c10K.fa | tr " " "\t" > Assembly/Lengths.txt
 
 for file in Map/*.sam
@@ -119,13 +114,23 @@ do
 done
 ```
 
-for file in Map/*.sam
-do
-    stub=${file%.sam}
-    stub2=${stub#Map\/}
-    echo $stub  
-     bedtools genomecov -ibam ${stub}.mapped.sorted.bam -g Assembly/Lengths.txt > ${stub}_cov.txt
+Collate coverages together (__do not run__):
+
+```
+for i in Map/*_cov.txt 
+do 
+   echo $i
+   stub=${i%_cov.txt}
+   stub=${stub#Map\/}
+   echo $stub
+   awk -F"\t" '{l[$1]=l[$1]+($2 *$3);r[$1]=$4} END {for (i in l){print i","(l[i]/r[i])}}' $i > Map/${stub}_cov.csv
 done
+
+```
+
+```
+$DESMAN/scripts/Collate.pl Map > Coverage.csv
+```
 
 ### Contig binning
 
