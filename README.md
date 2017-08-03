@@ -70,29 +70,24 @@ tar -xvzf Assembly.tar.gz
 
 Evaluate the assembly quality with the script provided:
 ```
-$SCRIPTPATH/contig-stats.pl < Assembly/final.contigs.fa 
+$CDSCRIPTS/contig-stats.pl < Assembly/final.contigs.fa 
 ```
 
-Results similar to...
-sequence #: 26972	total length: 70633244	max length: 1091259	N50: 13151	N90: 830
-sequence #: 8678	total length: 31484306	max length: 1071063	N50: 15745	N90: 1406
+Results in output:
+```
+sequence #: 13863	total length: 31472365	max length: 1015941	N50: 9774	N90: 706
+```
 
-Then cut up contigs and index for BWA:
+The next step in CONCOCT is to cut up contigs and map the reads back onto them. Again 
+__do not run__ this:
+
 
 ```
 cd Assembly
 python $CONCOCT/scripts/cut_up_fasta.py -c 10000 -o 0 -m final.contigs.fa > final_contigs_c10K.fa
 bwa index final_contigs_c10K.fa
 cd ..
-```
 
-If you do not have time for the assembly simply download:
-```
-wget https://stamps2017.s3.climb.ac.uk/Assembly.tar.gz
-tar -xvzf Assembly.tar.gz
-```
-
-```
 mkdir Map
 
 for file in Reads/*.r1.fq.gz
@@ -105,6 +100,7 @@ do
     echo $base
 
     bwa mem -t 8 Assembly/final_contigs_c10K.fa $file ${stub}.r2.fq.gz > Map/$base.sam
+
 done
 ```
 
@@ -112,14 +108,14 @@ done
 
 And calculate coverages:
 ```
-python $DESMAN/scripts/LengthsT.py -i Assembly/final_contigs_c10K.fa | tr " " "\t" > Assembly/Lengths.txt
+python $DESMAN/scripts/Lengths.py -i Assembly/final_contigs_c10K.fa | tr " " "\t" > Assembly/Lengths.txt
 
 for file in Map/*.sam
 do
     stub=${file%.sam}
     stub2=${stub#Map\/}
     echo $stub  
-    (samtools view -h -b -S $file > ${stub}.bam; samtools view -b -F 4 ${stub}.bam > ${stub}.mapped.bam; samtools sort -m 1000000000 ${stub}.mapped.bam -o ${stub}.mapped.sorted.bam; bedtools genomecov -ibam ${stub}.mapped.sorted.bam -g Assembly/Lengths.txt > ${stub}_cov.txt)
+    (samtools view -h -b -S $file > ${stub}.bam; samtools view -b -F 4 ${stub}.bam > ${stub}.mapped.bam; samtools sort -m 1000000000 ${stub}.mapped.bam ${stub}.mapped.sorted; bedtools genomecov -ibam ${stub}.mapped.sorted.bam -g Assembly/Lengths.txt > ${stub}_cov.txt)
 done
 ```
 
