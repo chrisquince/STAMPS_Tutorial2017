@@ -62,7 +62,7 @@ ls Reads/*r2*gz | tr "\n" "," | sed 's/,$//' > r2.csv
 megahit -1 $(<r1.csv) -2 $(<r2.csv) -t 8 -o Assembly 
 ```
 
-This will take approximately 20 minutes. Please ** do not run ** this now. Instead copy across results that I ran earlier:
+This will take approximately 20 minutes. Please __do not run__ this now. Instead copy across results that I ran earlier:
 ```
 cp Assembly.tar.gz /class/stamps-shared/CDTutorial/
 tar -xvzf Assembly.tar.gz
