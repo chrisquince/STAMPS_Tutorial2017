@@ -21,7 +21,7 @@ The data consists of 32 samples of 500,000 2X150 bp paired end reads taken from 
 ```
 head -n 10 genome_coverage.tsv
 ```
-which has format "Sample\tSpecies\Strain\Coverage\Relative frequency".
+which has format "Sample\tSpecies\Strain\Coverage\Relative frequency". We will now use CONCOCT/DESMAN to resolve these *de novo*.
 
 ## Running CONCOCT2 and DESMAN on the complex mock
 
