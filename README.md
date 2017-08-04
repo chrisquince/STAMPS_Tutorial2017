@@ -319,7 +319,41 @@ In real studies it is important to know the coverage of each bin in each sample.
 python $CDSCRIPTS/ClusterMeanCov.py Coverage.csv clustering_gt1000.csv ../Assembly/final_contigs_c10K.fa > Cluster_Cov.csv
 ```
 
-## Run DESMAN pipeline to resolve strains in each high quality bin
+### Comparing to known reference genome assignments
+
+These reads were generated synthetically _in silico_ from known genomes. It is therefore possible to compare the CONCOCT binning results to the assignments of contigs to genomes. This will not be possible for a genuine experimental metagenome. The assignments of contigs to genomes have been precomputed for you:
+
+```bash
+cd $METASIMWD
+cp /class/stamps-shared/CDTutorial/AssignContigs.tar.gz .
+tar -xvzf AssignContigs.tar.gz
+```
+
+Then move into this directory and run the following CONCOCT script which calculates accuracy statistics for a comparison of bins to reference genomes:
+
+```bash
+cd AssignContigs
+$CONCOCT/scripts/Validate.pl --cfile=../Concoct/clustering_gt1000.csv --sfile=Contig_Species.csv --ffile=../Assembly/final_contigs_c10K.fa  
+```
+
+The results should looks as follows:
+```
+N	M	TL	S	K	Rec.	Prec.	NMI	Rand	AdjRand
+5648	5642	2.7103e+07	8	21	0.765935	0.999235	0.869097	0.928564	0.695141
+```
+This confirms SCG plots we have some good bins high precision, but they are fragmented with lower recall.
+
+We can also visualise the resulting confusion matrix.
+
+```bash
+Rscript $CONCOCT/scripts/ConfPlot.R -c Conf.csv -o Conf.pdf 
+```
+
+Which should give something like...
+
+![SCG Results](Figures/clustering_gt1000_scg.pdf)
+
+## Run the DESMAN pipeline to resolve strains in each high quality bin
 
 ### Getting core variant frequencies
 
@@ -421,6 +455,23 @@ do
 
 done < Concoct/Cluster75.txt 
 ``` 
-
 **do not run the above**
 
+Instead just copy the following tar archive into your working directory:
+```bash
+cp /class/stamps-shared/CDTutorial/Variants.tar.gz $METASIMWD
+tar -xvzf Variants.tar.gz
+```
+
+The directory contains 8 .freq files one for each cluster. If we look at one:
+```bash
+head -n 10 Variants/Cluster2_scg.freq 
+```
+We see it comprises a header, plus one line for each core gene position, giving base frequencies in the order A,C,G,T. This is the input required by DESMAN.
+
+### Detecting variants on core genes
+
+This may be necessary to get DESMAN accessory scripts to work:
+```bash
+export PATH=/class/stamps-software/desman/lib/python2.7/site-packages/desman-0.1.dev0-py2.7-linux-x86_64.egg/desman:$PATH
+```
