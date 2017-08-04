@@ -2,7 +2,7 @@
 
 ## Getting started
 
-This tutorial provides a complete walkthrough for CONCOCT2 and DESMAN on the STAMPS servers using 8 threads. We will construct a now working directory in our home directories and copy across the tutorial data and some config files from the simulation:
+This tutorial provides a complete walkthrough for CONCOCT2 and DESMAN on the STAMPS servers using 4 threads. We will construct a now working directory in our home directories and copy across the tutorial data and some config files from the simulation:
 
 ```
 cd ~
@@ -59,7 +59,7 @@ I previously assembled the reads using MEGAHIT 1.1.1 and default parameters:
 module load megahit/1.0.6
 ls Reads/*r1*gz | tr "\n" "," | sed 's/,$//' > r1.csv
 ls Reads/*r2*gz | tr "\n" "," | sed 's/,$//' > r2.csv
-megahit -1 $(<r1.csv) -2 $(<r2.csv) -t 8 -o Assembly 
+megahit -1 $(<r1.csv) -2 $(<r2.csv) -t 4 -o Assembly 
 ```
 
 This will take approximately 20 minutes. Please __do not run__ this now. Instead copy across results that I ran earlier:
@@ -128,24 +128,28 @@ done
 
 ```
 
+Instead copy and extract out the prepared directory:
 ```
-$DESMAN/scripts/Collate.pl Map > Coverage.csv
+cp /class/stamps-shared/CDTutorial/Map.tar.gz .
+tar -xvzf Map.tar.gz
 ```
 
 ### Contig binning
 
 We are going to use a more efficient version of CONCOCT, CONCOCT2. Now we can run CONCOCT:
+
 ```
+$DESMAN/scripts/Collate.pl Map > Coverage.csv
 
-    mkdir Concoct
+mkdir Concoct
 
-    mv Coverage.csv Concoct
+mv Coverage.csv Concoct
 
-    cd Concoct
+cd Concoct
 
-    tr "," "\t" < Coverage.csv > Coverage.tsv
+tr "," "\t" < Coverage.csv > Coverage.tsv
 
-    concoct --coverage_file Coverage.tsv --composition_file ../Assembly/final_contigs_c10K.fa -t 8 > concoct.out
+concoct --coverage_file Coverage.tsv --composition_file ../Assembly/final_contigs_c10K.fa -t 4
 
 ```
 
@@ -161,13 +165,14 @@ Find genes using prodigal:
 
     python $DESMAN/scripts/LengthFilter.py ../Assembly/final_contigs_c10K.fa -m 1000 >     final_contigs_gt1000_c10K.fa
 
-    prodigal -i final_contigs_gt1000_c10K.fa -a final_contigs_gt1000_c10K.faa -d     final_contigs_gt1000_c10K.fna  -f gff -p meta -o final_contigs_gt1000_c10K.gff > p.out
+    prodigal -i final_contigs_gt1000_c10K.fa -a final_contigs_gt1000_c10K.faa -d     final_contigs_gt1000_c10K.fna  -f gff -p meta -o final_contigs_gt1000_c10K.gff 
 ```
 
 Assign COGs change the -c flag which sets number of parallel processes appropriately:
 ```
-    export COGSDB_DIR=/mydatabase_path/rpsblast_db
-    $CONCOCT/scripts/RPSBLAST.sh -f final_contigs_gt1000_c10K.faa -p -c 8 -r 1
+    export COGSDB_DIR=/class/stamps-shared/CDTutorial/rpsblast_cog_db/
+    module load parallel/201702222
+    $CONCOCT/scripts/RPSBLAST.sh -f final_contigs_gt1000_c10K.faa -p -c 4 -r 1
 ```
 
 We will also write out lists of cogs and genes in each contig. These will be useful later:
