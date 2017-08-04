@@ -356,10 +356,13 @@ do
     wait    
 done < Concoct/Cluster75.txt 
 ```
+**do not run the above**
 
 and use a third party program bam-readcount to get base frequencies at each position on each contig:
 
 ```
+module load bam-readcount
+
 while read line
 do
     mag=$line
@@ -390,21 +393,22 @@ do
 done < Concoct/Cluster75.txt
 
 ``` 
-
+** do not run the above**
 Then we want to select core cogs from each cluster
 
 ```
 while read -r cluster 
 do
     echo $cluster
-    $DESMAN/scripts/SelectContigsPos.pl STAMPS_Tutorial2017/data/cogs.txt < Split/${cluster}/${cluster}.cog > Split/${cluster}/${cluster}_core.cogs
+    $DESMAN/scripts/SelectContigsPos.pl scgs.txt < Split/${cluster}/${cluster}.cog > Split/${cluster}/${cluster}_core.cogs
 done < Concoct/Cluster75.txt
 ```
+
+** do not run the above**
 
 Then we can get the base counts on these core cogs:
 
 ```
-#!/bin/bash
 
 mkdir Variants
 while read -r cluster 
@@ -418,4 +422,5 @@ do
 done < Concoct/Cluster75.txt 
 ``` 
 
+** do not run the above**
 
