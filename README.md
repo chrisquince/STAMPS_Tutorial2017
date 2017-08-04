@@ -4,7 +4,7 @@
 
 This tutorial provides a complete walkthrough for CONCOCT2 and DESMAN on the STAMPS servers using 4 threads. We will construct a now working directory in our home directories and copy across the tutorial data and some config files from the simulation:
 
-```
+```bash
 cd ~
 mkdir CDTutorial
 cd CDTutorial
