@@ -2,26 +2,34 @@
 
 ## Getting started
 
-This tutorial provides a complete walkthrough for CONCOCT2 and DESMAN on the STAMPS servers using 4 threads. We will construct a now working directory in our home directories and copy across the tutorial data and some config files from the simulation:
+This tutorial describes a complete walkthrough for CONCOCT2 and DESMAN on the STAMPS servers using 4 threads. Some of of the pre-processing steps are time consuming and not that informative. These have been pre-run and you will just copy across the output.
+We will begin by constructing a new working directory in our home directories:
 
 ```bash
 cd ~
 mkdir CDTutorial
 cd CDTutorial
-cp /class/stamps-shared/CDTutorial/* .
 ```
 
-Extract and untar the Reads and Genomes directories:
+The tutorial data consists of 32 synthetic samples of 500,000 2X150 bp paired end reads taken from 8 species and 15 genomes. Copy across the simulation config file just to have a look at it with the less command:
+
+```bash
+cp /class/stamps-shared/CDTutorial/genome_coverage.tsv .
+less genome_coverage.tsv
 ```
+
+This has format "Sample\tSpecies\Strain\Coverage\Relative frequency". We will now use CONCOCT/DESMAN to resolve these *de novo*.
+
+The simulated reads and genomes are in the tar archives /class/stamps-shared/CDTutorial/Reads.tar.gz and /class/stamps-shared/CDTutorial/Genomes.tar.gz respectively. Please **do not** run the commands below. They indicate what you would do if you wanted to run the preprocessing steps yourself. 
+
+```
+cp /class/stamps-shared/CDTutorial/Reads.tar.gz
 tar -xvzf Reads.tar.gz
+cp /class/stamps-shared/CDTutorial/Genomes.tar.gz
 tar -xvzf Genomes.tar.gz
 ```
+**do not run the above**
 
-The data consists of 32 samples of 500,000 2X150 bp paired end reads taken from 8 species and 15 genomes. The organisms vary in abundance across samples as in the file:
-```
-head -n 10 genome_coverage.tsv
-```
-which has format "Sample\tSpecies\Strain\Coverage\Relative frequency". We will now use CONCOCT/DESMAN to resolve these *de novo*.
 
 ## Running CONCOCT2 and DESMAN on the complex mock
 
