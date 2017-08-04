@@ -321,9 +321,10 @@ python $CDSCRIPTS/ClusterMeanCov.py Coverage.csv clustering_gt1000.csv ../Assemb
 
 ## Run DESMAN pipeline to resolve strains in each high quality bin
 
+### Getting core variant frequencies
 
 First we separate out the contigs, cogs, and genes into the separate bins:
-```
+```bash
 cd ..
 mkdir Split
 cd Split
@@ -332,7 +333,6 @@ $CDSCRIPTS/SplitCOGs.pl ../Annotate/final_contigs_gt1000_c10K.cogs ../Concoct/cl
 $CDSCRIPTS/SplitGenes.pl ../Annotate/final_contigs_gt1000_c10K.genes ../Concoct/clustering_gt1000.csv
 cd ..
 ```
-
 
 The first step in pre-processing for DESMAN would be to split up the bam files by each cluster in turn. **Do not** run this yourselves:
 
@@ -393,7 +393,7 @@ do
 done < Concoct/Cluster75.txt
 
 ``` 
-** do not run the above**
+**do not run the above**
 Then we want to select core cogs from each cluster
 
 ```
@@ -404,7 +404,7 @@ do
 done < Concoct/Cluster75.txt
 ```
 
-** do not run the above**
+**do not run the above**
 
 Then we can get the base counts on these core cogs:
 
@@ -422,5 +422,5 @@ do
 done < Concoct/Cluster75.txt 
 ``` 
 
-** do not run the above**
+**do not run the above**
 
