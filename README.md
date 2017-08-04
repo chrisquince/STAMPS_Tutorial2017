@@ -351,7 +351,7 @@ Rscript $CONCOCT/scripts/ConfPlot.R -c Conf.csv -o Conf.pdf
 
 Which should give something like...
 
-![SCG Results](Figures/clustering_gt1000_scg.pdf)
+![Confusion Matrix](Figures/Conf.pdf)
 
 ## Run the DESMAN pipeline to resolve strains in each high quality bin
 
