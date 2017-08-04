@@ -328,7 +328,7 @@ R
 >q()
 ```
 
-We have three clusters, Cluster7 and Cluster16 that have a total coverage 
+We have two clusters, Cluster7 and Cluster16 that have a total coverage 
 of > 100 and are 75% pure and complete, this is typically the minimum coverage necessary for strain resolution.
 
 ### Comparing to known reference genome assignments
@@ -545,3 +545,16 @@ do
         desman $varFile -e $eFile -o Cluster16_${g}_${r} -g $g -s $r -m 1.0 -i 100 
     done
 done
+```
+
+```
+cat */fit.txt | cut -d"," -f2- > Dev.csv
+sed -i '1iH,G,LP,Dev' Dev.csv 
+```
+
+Which we can then visualise:
+```
+$DESMAN/scripts/PlotDev.R -l Dev.csv -o Dev.pdf
+```
+
+![Posterior deviance](Figures/Dev.pdf)
