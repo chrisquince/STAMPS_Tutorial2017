@@ -475,3 +475,41 @@ This may be necessary to get DESMAN accessory scripts to work:
 ```bash
 export PATH=/class/stamps-software/desman/lib/python2.7/site-packages/desman-0.1.dev0-py2.7-linux-x86_64.egg/desman:$PATH
 ```
+
+```bash
+
+mkdir SCG_Analysis
+
+for file in ./Variants/*.freq
+do
+    stub=${file%.freq}
+    stub=${stub#./Variants\/}
+
+    echo $stub
+    mkdir SCG_Analysis/$stub
+    
+    cp $file SCG_Analysis/$stub
+    cd SCG_Analysis/$stub    
+
+    Variant_Filter.py ${stub}.freq -o $stub -m 1.0 -f 25.0 -c -sf 0.80 -t 2.5 
+    
+    cd ../..
+done
+
+```
+
+```
+varFile=Cluster16_scgsel_var.csv
+
+eFile=Cluster16_scgtran_df.csv
+    
+
+for g in 1 2 3 4  
+do
+    echo $g
+    for r in 0 1 2 3 4
+    do
+	    echo $r
+        desman $varFile -e $eFile -o Cluster16_${g}_${r} -g $g -s $r -m 1.0 -i 100 
+    done
+done
