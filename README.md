@@ -228,7 +228,7 @@ To determine how good our binning is we need to annotate the contigs with cluste
 
     prodigal -i final_contigs_gt1000_c10K.fa -a final_contigs_gt1000_c10K.faa -d     final_contigs_gt1000_c10K.fna  -f gff -p meta -o final_contigs_gt1000_c10K.gff 
 ```
-/* do not run the above*/
+__ do not run the above __
 
 Assign COGs change the -c flag which sets number of parallel processes appropriately:
 ```
@@ -236,20 +236,20 @@ Assign COGs change the -c flag which sets number of parallel processes appropria
     module load parallel/201702222
     $CONCOCT/scripts/RPSBLAST.sh -f final_contigs_gt1000_c10K.faa -p -c 4 -r 1
 ```
-/* do not run the above*/
+__ do not run the above __
 
 We will also write out lists of cogs and genes in each contig. These will be useful later:
 ```
 python $DESMAN/scripts/ExtractCogs.py -b final_contigs_gt1000_c10K.out --cdd_cog_file /class/stamps-shared/CDTutorial/CONCOCT/scgs/cdd_to_cog.tsv -g final_contigs_gt1000_c10K.gff > final_contigs_gt1000_c10K.cogs
 python $DESMAN/scripts/ExtractGenes.py -g final_contigs_gt1000_c10K.gff > final_contigs_gt1000_c10K.genes
 ```
-/* do not run the above*/
+__ do not run the above__
 
 We will also need contig lengths later on:
 ```
 python $DESMAN/scripts/Lengths.py -i final_contigs_gt1000_c10K.fa > final_contigs_gt1000_c10K.len
 ```
-/* do not run the above*/
+__do not run the above__
 
 
 Instead copy across the complete annotation directory:
