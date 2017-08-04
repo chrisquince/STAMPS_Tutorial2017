@@ -48,6 +48,7 @@ that you copy across the output instead. This assumes that DESMAN and CONCOCT ar
 
 ```bash
 export CONCOCT=/automounts/classfs/classfs/stamps-software/concoct_speedup_mp/
+export CONCOCT_DATA=/class/stamps-shared/CDTutorial/CONCOCT/
 export DESMAN=/automounts/classfs/classfs/stamps-software/desman/
 export CDSCRIPTS=/class/stamps-shared/CDTutorial/scripts
 ```
@@ -240,7 +241,7 @@ __do not run the above__
 
 We will also write out lists of cogs and genes in each contig. These will be useful later:
 ```
-python $DESMAN/scripts/ExtractCogs.py -b final_contigs_gt1000_c10K.out --cdd_cog_file /class/stamps-shared/CDTutorial/CONCOCT/scgs/cdd_to_cog.tsv -g final_contigs_gt1000_c10K.gff > final_contigs_gt1000_c10K.cogs
+python $DESMAN/scripts/ExtractCogs.py -b final_contigs_gt1000_c10K.out --cdd_cog_file $CONCOCT_DATA/scgs/cdd_to_cog.tsv -g final_contigs_gt1000_c10K.gff > final_contigs_gt1000_c10K.cogs
 python $DESMAN/scripts/ExtractGenes.py -g final_contigs_gt1000_c10K.gff > final_contigs_gt1000_c10K.genes
 ```
 __do not run the above__
@@ -263,7 +264,7 @@ cd Annotate
 
 The annotation files are just simple comma separated lists, have a look at them:
 
-```
+```bash
 head final_contigs_gt1000_c10K.cogs 
 head final_contigs_gt1000_c10K.genes
 ```
@@ -277,19 +278,29 @@ Format is:
 
 ### Determine number of complete genomes
 
-We are going to determine the number of complete and pure genomes using single-core gene frequencies. First we 
-calculate scg frequencies on the CONCOCT clusters:
+We are going to determine the number of complete and pure genomes in our binning using single-core gene frequencies. Before doing that it is useful to estimate how many genomes 
+we think are in our assembly. We can get this from the assembly by just calculating the 
+median number of single-copy core genes:
 
-```
-cd ../Concoct
-python $CONCOCT/scripts/COG_table.py -b ../Annotate/final_contigs_gt1000_c10K.out  -m $CONCOCT/scgs/scg_cogs_min0.97_max1.03_unique_genera.txt -c clustering_gt1000.csv  --cdd_cog_file $CONCOCT/scgs/cdd_to_cog.tsv > clustering_gt1000_scg.tsv
-```
-
-Then we visualise in R:
-```
-$CONCOCT/scripts/COGPlot.R -s clustering_gt1000_scg.tsv -o clustering_gt1000_scg.pdf
+```bash
+cd $METASIMWD
+cp /class/stamps-shared/CDTutorial/scgs.txt .
+$CDSCRIPTS/CountSCGs.pl scgs.txt < Annotate/final_contigs_gt1000_c10K.cogs | cut -d"," -f2 | awk -f $CDSCRIPTS/median.awk
 ```
 
+This should give **8** which since that is our species number is reassuring.
+Now we calculate scg frequencies on the CONCOCT clusters:
+
+```
+cd Concoct
+python $CONCOCT/scripts/COG_table.py -b ../Annotate/final_contigs_gt1000_c10K.out -m $CONCOCT_DATA/scgs/scg_cogs_min0.97_max1.03_unique_genera.txt -c clustering_gt1000.csv  --cdd_cog_file $CONCOCT_DATA/scgs/cdd_to_cog.tsv > clustering_gt1000_scg.tsv
+```
+
+This produces a tab separated file of SCG frequencies, which we can then visualise in R:
+```
+Rscript $CONCOCT/scripts/COGPlot.R -s clustering_gt1000_scg.tsv -o clustering_gt1000_scg.pdf
+```
+You may need to download this pdf off the class servers to visualise.
 We should see 8 nearly complete bins and some fragmentary ones:
 
 ![SCG Results](Figures/clustering_gt1000_scg.pdf)
