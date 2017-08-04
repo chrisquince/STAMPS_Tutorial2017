@@ -319,6 +319,18 @@ In real studies it is important to know the coverage of each bin in each sample.
 python $CDSCRIPTS/ClusterMeanCov.py Coverage.csv clustering_gt1000.csv ../Assembly/final_contigs_c10K.fa > Cluster_Cov.csv
 ```
 
+We can quickly use R to sum up the cluster coverages:
+
+```
+R
+>Cluster_Cov <- read.csv("Cluster_Cov.csv",header=TRUE,row.names=1)
+>sort(rowSums(Cluster_Cov))
+>q()
+```
+
+We have three clusters, Cluster7 and Cluster16 that have a total coverage 
+of > 100 and are 75% pure and complete, this is typically the minimum coverage necessary for strain resolution.
+
 ### Comparing to known reference genome assignments
 
 These reads were generated synthetically _in silico_ from known genomes. It is therefore possible to compare the CONCOCT binning results to the assignments of contigs to genomes. This will not be possible for a genuine experimental metagenome. The assignments of contigs to genomes have been precomputed for you:
@@ -476,16 +488,23 @@ This may be necessary to get DESMAN accessory scripts to work:
 export PATH=/class/stamps-software/desman/lib/python2.7/site-packages/desman-0.1.dev0-py2.7-linux-x86_64.egg/desman:$PATH
 ```
 
+First we detect variants on both clusters that were identified as 75% pure and complete and had a coverage of greater than 100:
+
 ```bash
+
+cd $METASIMWD
 
 mkdir SCG_Analysis
 
-for file in ./Variants/*.freq
+for file in ./Variants/Cluster7_scg.freq ./Variants/Cluster16_scg.freq
 do
+    echo $file
+
     stub=${file%.freq}
     stub=${stub#./Variants\/}
 
     echo $stub
+
     mkdir SCG_Analysis/$stub
     
     cp $file SCG_Analysis/$stub
@@ -498,7 +517,18 @@ done
 
 ```
 
+The Variant_Filter.py script produces an output file ${stub}sel_var.csv which lists those positions that are identified as variants by the log-ratio test with FDR < 1.0e-3. We can compare variant frequencies in the two clusters:
+
 ```
+cd SCG_Analysis
+wc */*sel_var.csv
+```
+
+So accounting for the header line we observe 17 and 0 variants in Clusters 16 and 7 respectively. For only Cluster 16 then can we attempt to actually resolve haplotypes. Using the desman executable:
+
+```
+cd Cluster16_scg 
+
 varFile=Cluster16_scgsel_var.csv
 
 eFile=Cluster16_scgtran_df.csv
