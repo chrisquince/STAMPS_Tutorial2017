@@ -31,11 +31,11 @@ tar -xvzf Genomes.tar.gz
 **do not run the above**
 
 
-## Running CONCOCT2 and DESMAN on the complex mock
+## Running CONCOCT2 and DESMAN on the 32 sample mock
 
 We need to load up the concoct and desman modules:
 
-```
+```basg
 module load concoct
 source /class/stamps-software/concoct_speedup_mp/bin/activate
 module load desman
@@ -43,18 +43,18 @@ source /class/stamps-software/desman/bin/activate
 ```
 
 We now describe how to perform a complete analysis binning and resolving strains on 
-this synthetic community. Some of these steps are time consuming so we provide the option to download the output instead. This assumes that DESMAN and CONCOCT are installed and their paths 
-set to the variables DESMAN and CONCOCT respectively e.g. (changing paths to your 
-system set-up):
+this synthetic community. Some of these steps are time consuming so we recommend 
+that you copy across the output instead. This assumes that DESMAN and CONCOCT are installed and their paths set to the variables DESMAN and CONCOCT respectively e.g. (changing paths to your system set-up):
 
-```
+```bash
 export CONCOCT=/automounts/classfs/classfs/stamps-software/concoct_speedup_mp/
 export DESMAN=/automounts/classfs/classfs/stamps-software/desman/
 export CDSCRIPTS=/class/stamps-shared/CDTutorial/scripts
 ```
 
 We will also create a new variable pointing to our current working dir for all this analysis:
-```
+
+```bash
 export METASIMWD=~/CDTutorial
 ```
 
@@ -63,6 +63,7 @@ The first step in the analysis is to assemble the reads.
 ### Assembly
 
 I previously assembled the reads using MEGAHIT 1.1.1 and default parameters:
+
 ```
 module load megahit/1.0.6
 ls Reads/*r1*gz | tr "\n" "," | sed 's/,$//' > r1.csv
@@ -70,9 +71,10 @@ ls Reads/*r2*gz | tr "\n" "," | sed 's/,$//' > r2.csv
 megahit -1 $(<r1.csv) -2 $(<r2.csv) -t 4 -o Assembly 
 ```
 
-This will take approximately 20 minutes. Please __do not run__ this now. Instead copy across results that I ran earlier:
-```
-cp Assembly.tar.gz /class/stamps-shared/CDTutorial/
+This would take approximately 20 minutes. Please __do not run__ the above now. Instead copy across results that I ran earlier:
+
+```bash
+cp /class/stamps-shared/CDTutorial/Assembly.tar.gz .
 tar -xvzf Assembly.tar.gz
 ```  
 
