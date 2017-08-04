@@ -60,9 +60,9 @@ export METASIMWD=~/CDTutorial
 
 The first step in the analysis is to assemble the reads. 
 
-### Assembly
+### Coassembly
 
-I previously assembled the reads using MEGAHIT 1.1.1 and default parameters:
+I previously co-assembled the reads using MEGAHIT 1.1.1 and default parameters:
 
 ```
 module load megahit/1.0.6
@@ -79,14 +79,19 @@ tar -xvzf Assembly.tar.gz
 ```  
 
 Evaluate the assembly quality with the script provided:
-```
+
+```bash
 $CDSCRIPTS/contig-stats.pl < Assembly/final.contigs.fa 
 ```
 
 Results in output:
-```
+```bash
 sequence #: 13863	total length: 31472365	max length: 1015941	N50: 9774	N90: 706
 ```
+
+Do you think this a good co-assembly?
+
+### Coassembly
 
 The next step in CONCOCT is to cut up contigs and map the reads back onto them. Again 
 __do not run__ any of the following:
@@ -123,6 +128,8 @@ do
     (samtools view -h -b -S $file > ${stub}.bam; samtools view -b -F 4 ${stub}.bam > ${stub}.mapped.bam; samtools sort -m 1000000000 ${stub}.mapped.bam ${stub}.mapped.sorted; bedtools genomecov -ibam ${stub}.mapped.sorted.bam -g Assembly/Lengths.txt > ${stub}_cov.txt)
 done
 ```
+**do not run the above**
+
 
 Collate coverages together (__do not run__):
 
@@ -136,21 +143,26 @@ do
    awk -F"\t" '{l[$1]=l[$1]+($2 *$3);r[$1]=$4} END {for (i in l){print i","(l[i]/r[i])}}' $i > Map/${stub}_cov.csv
 done
 
+$DESMAN/scripts/Collate.pl Map > Coverage.csv
+sed -i 's/\.\.\/CDTutorial\/Map\///g' Coverage.csv 
+
 ```
 
-Instead copy and extract out the prepared directory:
+**do not run the above**
+
+Instead just copy the resulting contig coverage file:
+
+```bash
+cp /class/stamps-shared/CDTutorial/Coverage.csv .
 ```
-cp /class/stamps-shared/CDTutorial/Map.tar.gz .
-tar -xvzf Map.tar.gz
-```
+
+This just contains a header and a row for each contig givings its coverage (**how is this defined?**) in each sample. If you want to use CONCOCT with mappers other than bwa this is the input that is required.
 
 ### Contig binning
 
 We are going to use a more efficient version of CONCOCT, CONCOCT2. Now we can run CONCOCT:
 
-```
-$DESMAN/scripts/Collate.pl Map > Coverage.csv
-
+```bash
 mkdir Concoct
 
 mv Coverage.csv Concoct
