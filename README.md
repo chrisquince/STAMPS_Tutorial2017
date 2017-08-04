@@ -524,6 +524,8 @@ cd SCG_Analysis
 wc */*sel_var.csv
 ```
 
+### Inferring haplotypes
+
 So accounting for the header line we observe 17 and 0 variants in Clusters 16 and 7 respectively. For only Cluster 16 then can we attempt to actually resolve haplotypes. Using the desman executable:
 
 ```
