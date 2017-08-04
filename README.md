@@ -307,13 +307,16 @@ We should see 8 nearly complete bins and some fragmentary ones:
 
 We want to store a list of 75% complete and pure for DESMAN analysis:
 ```
-python $SCRIPTS/CompleteClusters.py clustering_gt1000_scg.tsv > Cluster75.txt
+python $CDSCRIPTS/CompleteClusters.py clustering_gt1000_scg.tsv > Cluster75.txt
 ```
 
 ### How to calculate cluster coverages
 
+
+In real studies it is important to know the coverage of each bin in each sample. This can then be transformed into relative copy numbers for correlation with meta-data:
+
 ```
-python $EXAMPLE/scripts/ClusterMeanCov.py Coverage.csv clustering_gt1000.csv ../Assembly/final_contigs_c10K.fa > Cluster_Cov.csv
+python $CDSCRIPTS/ClusterMeanCov.py Coverage.csv clustering_gt1000.csv ../Assembly/final_contigs_c10K.fa > Cluster_Cov.csv
 ```
 
 ## Run DESMAN pipeline to resolve strains in each high quality bin
@@ -325,19 +328,21 @@ cd ..
 mkdir Split
 cd Split
 $DESMAN/scripts/SplitClusters.pl ../Annotate/final_contigs_gt1000_c10K.fa ../Concoct/clustering_gt1000.csv
-$METASIMPATH/scripts/SplitCOGs.pl ../Annotate/final_contigs_gt1000_c10K.cogs ../Concoct/clustering_gt1000.csv
-$METASIMPATH/scripts/SplitGenes.pl ../Annotate/final_contigs_gt1000_c10K.genes ../Concoct/clustering_gt1000.csv
+$CDSCRIPTS/SplitCOGs.pl ../Annotate/final_contigs_gt1000_c10K.cogs ../Concoct/clustering_gt1000.csv
+$CDSCRIPTS/SplitGenes.pl ../Annotate/final_contigs_gt1000_c10K.genes ../Concoct/clustering_gt1000.csv
 cd ..
 ```
 
-Now we can split up the bam files by each cluster in turn:
+
+The first step in pre-processing for DESMAN would be to split up the bam files by each cluster in turn. **Do not** run this yourselves:
+
 ```
 mkdir SplitBam
 
 while read -r cluster 
 do
     grep ">" Split/${cluster}/${cluster}.fa | sed 's/>//g' > Split/${cluster}/${cluster}_contigs.txt
-    ./STAMPS_Tutorial2017/scripts/AddLengths.pl Annotate/final_contigs_gt1000_c10K.len < Split/${cluster}/${cluster}_contigs.txt > Split/${cluster}/${cluster}_contigs.tsv
+    $CDSCRIPTS/AddLengths.pl Annotate/final_contigs_gt1000_c10K.len < Split/${cluster}/${cluster}_contigs.txt > Split/${cluster}/${cluster}_contigs.tsv
     mkdir SplitBam/${cluster}
 
     for bamfile in Map/*.mapped.sorted.bam
