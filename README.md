@@ -558,3 +558,9 @@ $DESMAN/scripts/PlotDev.R -l Dev.csv -o Dev.pdf
 ```
 
 ![Posterior deviance](Figures/Dev.pdf)
+
+There are clearly two haplotypes. We can also run the heuristic to determine haplotype number:
+
+```bash
+python $DESMAN/scripts/resolvenhap.py Cluster16
+```
