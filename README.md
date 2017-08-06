@@ -617,7 +617,7 @@ This generates one fasta sequence file for each gene with the two strains in:
 
 ```bash
 ls SCG_Fasta_2_3
-``
+```
 
 In this case we know Cluster16 maps onto species 2095, which reassuringly has two strains present. I have pre-calculated the true variants between these two strains.
 
