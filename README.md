@@ -621,9 +621,9 @@ ls SCG_Fasta_2_3
 
 In this case we know Cluster16 maps onto species 2095, which reassuringly has two strains present. I have pre-calculated the true variants between these two strains.
 
+```bash 
 cp  /class/stamps-shared/CDTutorial/DesmanValidation/Cluster16_core_tauRF.csv .
 
-```
 python $DESMAN/scripts/validateSNP2.py Cluster16_2_3/Filtered_Tau_star.csv Cluster16_core_tauRF.csv
 ```
 
@@ -636,3 +636,5 @@ Intersection: 16
  [ 1.  0.]]
 ```
 Each predicted haplotype should match onto a reference strain with no errors.
+
+The next step would be to calculate the accessory gene presence and absences for these strains. That too will be left to an open lab if there is interest.
