@@ -380,6 +380,16 @@ $CDSCRIPTS/SplitGenes.pl ../Annotate/final_contigs_gt1000_c10K.genes ../Concoct/
 cd ..
 ```
 
+Then we select the SCGS for each cluster:
+```bash
+cd ../..
+while read -r cluster 
+do
+    echo $cluster
+    $DESMAN/scripts/SelectContigsPos.pl scgs.txt < Split/${cluster}/${cluster}.cog > Split/${cluster}/${cluster}_core.cogs
+done < Concoct/Cluster75.txt
+```
+
 The first step in pre-processing for DESMAN would be to split up the bam files by each cluster in turn. **Do not** run this yourselves:
 
 ```
@@ -440,19 +450,9 @@ done < Concoct/Cluster75.txt
 
 ``` 
 **do not run the above**
-Then we want to select core cogs from each cluster
 
-```
-while read -r cluster 
-do
-    echo $cluster
-    $DESMAN/scripts/SelectContigsPos.pl scgs.txt < Split/${cluster}/${cluster}.cog > Split/${cluster}/${cluster}_core.cogs
-done < Concoct/Cluster75.txt
-```
 
-**do not run the above**
-
-Then we can get the base counts on these core cogs:
+Then we can get the base counts on the core cogs:
 
 ```
 
@@ -519,17 +519,30 @@ done
 
 The Variant_Filter.py script produces an output file ${stub}sel_var.csv which lists those positions that are identified as variants by the log-ratio test with FDR < 1.0e-3. We can compare variant frequencies in the two clusters:
 
-```
+```bash
 cd SCG_Analysis
 wc */*sel_var.csv
 ```
+
+We can also go into the Cluster 16 directory and look at the output files:
+```bash
+cd Cluster16_scg
+more Cluster16_scgsel_var.csv 
+```
+
+The other important file is:
+```bash
+Cluster16_scgtran_df.csv
+```
+
+This is an estimate of base error rates which is used as a starting point for the haplotype inference.
+
 
 ### Inferring haplotypes
 
 So accounting for the header line we observe 17 and 0 variants in Clusters 16 and 7 respectively. For only Cluster 16 then can we attempt to actually resolve haplotypes. Using the desman executable:
 
 ```
-cd Cluster16_scg 
 
 varFile=Cluster16_scgsel_var.csv
 
@@ -565,8 +578,52 @@ There are clearly two haplotypes. We can also run the heuristic to determine hap
 python $DESMAN/scripts/resolvenhap.py Cluster16
 ```
 
-Reassuringly Cluster16 maps onto species 2095 which has two strains present.
+This should output:
+```
+2,2,3,0.0,Cluster16_2_3/Filtered_Tau_star.csv
+```
+
+This has the format:
+```
+No of haplotypes in best fit, No. of good haplotypes in best fit, Index of best fit, Average error rate, File with base predictions
+```
+
+Have a look at the prediction file:
+```
+more Cluster16_2_3/Filtered_Tau_star.csv
+```
+
+The position encoding is ACGT so what are the base predictions at each variant position? 
+We can turn these into actual sequences with the following commands:
+
+```bash
+    cut -d"," -f 1 < Cluster16_scgcogf.csv | sort | uniq | sed '1d' > coregenes.txt
+
+    mkdir SCG_Fasta_2_3
+    
+    python $DESMAN/scripts/GetVariantsCore.py ../../Annotate/final_contigs_gt1000_c10K.fa ../..//Split/Cluster16/Cluster16_core.cogs Cluster16_2_3/Filtered_Tau_star.csv coregenes.txt -o SCG_Fasta_2_3/
+```
+
+This generates one fasta sequence file for each gene with the two strains in:
+
+```bash
+ls SCG_Fasta_2_3
+``
+
+In this case we know Cluster16 maps onto species 2095, which reassuringly has two strains present. I have pre-calculated the true variants between these two strains.
+
+cp  /class/stamps-shared/CDTutorial/DesmanValidation/Cluster16_core_tauRF.csv .
 
 ```
-python ~/repos/DESMAN/scripts/validateSNP2.py Cluster16_scg/Cluster16_2_0/Filtered_Tau_star.csv Cluster16_core_tauRF.csv
+python $DESMAN/scripts/validateSNP2.py Cluster16_2_3/Filtered_Tau_star.csv Cluster16_core_tauRF.csv
 ```
+
+This gives distance matrices between the true variants and the predictions in terms of SNV and fractions:
+```bash
+Intersection: 16
+[[ 0 16]
+ [16  0]]
+[[ 0.  1.]
+ [ 1.  0.]]
+```
+Each predicted haplotype should match onto a reference strain with no errors.
