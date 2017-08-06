@@ -161,7 +161,8 @@ This just contains a header and a row for each contig givings its coverage (**ho
 
 ### Contig binning
 
-We are going to use a more efficient version of CONCOCT, CONCOCT2. Now we can run CONCOCT:
+We are going to use a more efficient version of CONCOCT, CONCOCT2. I will not show you how to do the refinement step discussed in the presentation. If that interests you we can work through it in an open lab.
+Now we can run CONCOCT:
 
 ```bash
 mkdir Concoct
@@ -390,7 +391,7 @@ cd ..
 
 Then we select the SCGS for each cluster:
 ```bash
-cd ../..
+cd $METASIMWD
 while read -r cluster 
 do
     echo $cluster
@@ -540,7 +541,7 @@ more Cluster16_scgsel_var.csv
 
 The other important file is:
 ```bash
-Cluster16_scgtran_df.csv
+more Cluster16_scgtran_df.csv
 ```
 
 This is an estimate of base error rates which is used as a starting point for the haplotype inference.
@@ -551,12 +552,12 @@ This is an estimate of base error rates which is used as a starting point for th
 So accounting for the header line we observe 17 and 0 variants in Clusters 16 and 7 respectively. For only Cluster 16 then can we attempt to actually resolve haplotypes. Using the desman executable:
 
 ```
+cd $METASIMWD/SCG_Analysis/Cluster16_scg
 
-varFile=Cluster16_scgsel_var.csv
+varFile='Cluster16_scgsel_var.csv'
 
-eFile=Cluster16_scgtran_df.csv
+eFile='Cluster16_scgtran_df.csv'
     
-
 for g in 1 2 3 4  
 do
     echo $g
