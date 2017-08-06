@@ -564,3 +564,9 @@ There are clearly two haplotypes. We can also run the heuristic to determine hap
 ```bash
 python $DESMAN/scripts/resolvenhap.py Cluster16
 ```
+
+Reassuringly Cluster16 maps onto species 2095 which has two strains present.
+
+```
+python ~/repos/DESMAN/scripts/validateSNP2.py Cluster16_scg/Cluster16_2_0/Filtered_Tau_star.csv Cluster16_core_tauRF.csv
+```
